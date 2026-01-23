@@ -14,7 +14,7 @@ v0.1 - Working CSV to MySQL CREATE TABLE and INSERT statements
 - First column is PRIMARY KEY
 - INSERT statements for all records
 
-#Future improvements
+# Future improvements
 CLI args, error handling, multiple CSVs, MySQL executor, FastAPI UI,FORIEGN KEY detection,PRIMARY KEY selection and more
  
 Sultan Abdulaziz - Jan 23, 2026
