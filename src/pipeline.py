@@ -9,10 +9,9 @@ def Main(file_path: str,table_Name:str,limit: int):
     column_constraints = []
    
     def data_type_convertor(s: str):
-       
         if s == "int64": return "INT"
-        if s == "str": return "VARCHAR(50)"
         if s == "float64": return "FLOAT"
+        else: return "VARCHAR(250)"
 
     def column_constraints_evaluater(series: pd.Series):
 
@@ -21,7 +20,7 @@ def Main(file_path: str,table_Name:str,limit: int):
         else: return ""
 
     for column in column_Names:
-        column_dTypes.append(data_type_convertor(df[column].dtype))
+        column_dTypes.append(data_type_convertor(str(df[column].dtype)))
         column_constraints.append(column_constraints_evaluater(df[column]))
     
     return SQL_Builder(table_Name,column_Names,column_dTypes,column_constraints,df,limit)
@@ -33,11 +32,11 @@ def SQL_Builder(table_Name: str,column_Names: list,column_dTypes: list,column_co
     
     SQL.append(column_Names[0]+" "+column_dTypes[0]+" PRIMARY KEY "+column_constraints[0]+",\n") #First Column is PRIMARY KEY
     for i in range(1,len(column_Names)):
-        SQL.append(column_Names[i]+" "+str(column_dTypes[i])+" "+column_constraints[i]+",\n")
+        SQL.append(column_Names[i]+" "+column_dTypes[i]+" "+column_constraints[i]+",\n")
     
     last_line = SQL.pop()
     SQL.append(last_line.rstrip(',\n') + "\n")
-    SQL.append(")\n")
+    SQL.append(");\n")
     return insert_statement_builder(table_Name,column_Names,column_dTypes,df,SQL,limit)
 
 def insert_statement_builder(table_Name: str,column_Names: list,column_dTypes: list,df: pd.DataFrame,SQL: list,limit: int):
@@ -49,14 +48,12 @@ def insert_statement_builder(table_Name: str,column_Names: list,column_dTypes: l
             if pd.isna(value):
                 row_values.append("NULL")
             else:
-                if column_dTypes[column] == "VARCHAR(50)":
-                  row_values.append("\""+str(value)+"\"")
+                if column_dTypes[column] == "VARCHAR(250)":
+                  row_values.append("\'"+str(value)+"\'")
                 else :
                     row_values.append(str(value))
-        insert_statement.append(",".join(row_values) + "),\n")
+        insert_statement.append(",".join(row_values) + ");\n")
         SQL.append("".join(insert_statement))
-    last_line = SQL.pop()
-    SQL.append(last_line.rstrip(',\n') + "\n")
 
     with open("mySQL_output","w") as file:
         file.write("".join(SQL))
