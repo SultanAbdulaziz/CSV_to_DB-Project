@@ -1,9 +1,8 @@
 import pandas as pd 
 from pathlib import Path
-import argparse
+#import argparse
 
-def Main(file_path: str,table_Name:str,limit: int):
-    df = pd.read_csv(file_path)
+def tomySQL(df: pd.DataFrame,table_Name:str,limit: int):
     column_Names = (df.keys())
     column_dTypes = []
     column_constraints = []
@@ -54,19 +53,19 @@ def insert_statement_builder(table_Name: str,column_Names: list,column_dTypes: l
                     row_values.append(str(value))
         insert_statement.append(",".join(row_values) + ");\n")
         SQL.append("".join(insert_statement))
+    return "".join(SQL)
 
-    with open("mySQL_output","w") as file:
-        file.write("".join(SQL))
-        return Path(file.name)
+    #with open("mySQL_output","w") as file:
+    #    file.write("".join(SQL))
+    #    return Path(file.name)
 
 #CLI args ->
-parser = argparse.ArgumentParser(description="A script that parses CSV to and outputs mySQL query to create table and insert values.")
-parser.add_argument("CSVinputFile", type=str, help="CSV File to parse")
-parser.add_argument("--table_Name", type=str,default = "Null" ,help="Table name (default: filename)")
-parser.add_argument("--limit", type=int, default=1000, help="Max rows to generate insert statements")
+#parser = argparse.ArgumentParser(description="A script that parses CSV to and outputs mySQL query to create table and insert values.")
+#parser.add_argument("CSVinputFile", type=str, help="CSV File to parse")
+#parser.add_argument("--table_Name", type=str,default = "Null" ,help="Table name (default: filename)")
+#parser.add_argument("--limit", type=int, default=1000, help="Max rows to generate insert statements")
 
 
-args = parser.parse_args()
-table_Name = args.table_Name
-if args.table_Name == "Null" : table_Name = (args.CSVinputFile.split(sep = "/")[-1]).split(sep = ".")[0]
-Main(args.CSVinputFile,table_Name,args.limit)
+#args = parser.parse_args()
+#table_Name = args.table_Name
+#if args.table_Name == "Null" : table_Name = (args.CSVinputFile.split(sep = "/")[-1]).split(sep = ".")[0]
