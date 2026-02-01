@@ -1,9 +1,7 @@
 import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
-import tempfile
-import os
 import src.pipeline as pipe
+
 
 st.set_page_config(
     page_title = "CSV to mySQL parser",
@@ -14,21 +12,46 @@ st.set_page_config(
     }
 )
 st.title("Streamlit CSV to mySQL generator 🚀")
+st.divider()
 
-uploaded_files = st.file_uploader(
-    "Upload CSV Files here.",accept_multiple_files=True,type="csv"
-)
+uploaded_files = st.sidebar.file_uploader("Upload CSV Files here.",accept_multiple_files=True,type="csv")
 
-if uploaded_files is not None:
+limit: int = (st.sidebar.number_input("Rows Limit",value = 1000,format="%d"))
+
+sql_type = st.sidebar.selectbox("DBMS",("mySQL","PostgreSQL","SQLite"),index = None,placeholder = "mySQL")
+
+@st.cache_data
+def start(df,sql_type):
+    result_list = pipe.initialize_columns(df,sql_type)
+    return result_list
+
+
+if uploaded_files and sql_type is not None:
     for uploaded_file in uploaded_files:
-        st.header(":blue[_SQL_] Code",divider = "red")
-        df = pd.read_csv(uploaded_file)
-        sql = pipe.tomySQL(df,str(uploaded_file.name).split(sep = '.')[0],1000)
-        st.code(sql,language = "SQL")
+        try:
+            df = pd.read_csv(uploaded_file)        
+            st.header(":blue[_Table_] Name",divider = "red")
+            table_Name = st.text_input("Table Name",str(uploaded_file.name).split(sep = '.')[0])
+            st.header(":blue[_Column_] Names",divider = "red")
+            result_set = start(df,sql_type)
+            column_Names = list(result_set[0])
+            column_dTypes = list(result_set[1])
+            column_constraints = list(result_set[2])
+            for i in range(len(column_Names)):
+                column_Names[i] = st.text_input(
+                "Column Name",
+                value=column_Names[i],  # Use 'value=' for pre-fill
+                key=f"colname_{hash(uploaded_file.name)}_{i}"  # Unique per file + index
+            )
+            sql = pipe.SQL_Builder(table_Name,column_Names,column_dTypes,column_constraints,df,limit)
+            st.header(":blue[_SQL_] Code",divider = "red")
+            st.code(sql,language = "SQL")
+        except Exception as e:
+            st.write(f":red[_ERROR_] {e}")
 
-else:
-    st.header("No File Uploaded")
 
 
-
+elif uploaded_files: st.header("Select DBMS")
+elif sql_type is not None: st.header("Upload Files through the sidebar.")
+else: st.header("Upload Files through the sidebar and Select DBMS.")
 
