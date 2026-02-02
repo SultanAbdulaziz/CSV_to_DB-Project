@@ -6,6 +6,7 @@ v1.4 - Working CSV to MySQL CREATE TABLE and INSERT statements
 1. install pandas, streamlit
 2. run (streamlit run app.py)
 3. upload the CSV files to the website and the code will be generated
+4. or just go to the website https://csv-to-sql.streamlit.app/
    
 # Features
 - Pandas dtype to MySQL types (INT/VARCHAR/FLOAT) more types to be implemented
