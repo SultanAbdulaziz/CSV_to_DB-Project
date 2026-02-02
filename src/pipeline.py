@@ -6,7 +6,7 @@ def initialize_columns(df: pd.DataFrame,sql_type: str):
     
     def data_type_convertor(s: str,sql_type: str):
         TYPE_MAP = {
-           "mySQL":       ["INT","FLOAT","VARCHAR(250)"],
+            "mySQL":       ["INT","FLOAT","VARCHAR(250)"],
             "PostgreSQL":  ["INT","REAL","VARCHAR(250)"],
             "SQLite":      ["INTEGER","REAL","TEXT"]
         }
@@ -16,9 +16,10 @@ def initialize_columns(df: pd.DataFrame,sql_type: str):
         return TYPE_MAP[sql_type][i]
 
     def column_constraints_evaluater(series: pd.Series):
-        if not series.isna().sum() > 0: return "NOT NULL"
-        elif series.dropna().nunique() == series.dropna().count(): return "UNIQUE"
-        else: return ""
+        s = [""]
+        if not series.isna().sum() > 0: s.append(" NOT NULL")
+        if series.dropna().nunique() == series.dropna().count(): s.append(" UNIQUE")
+        return "".join(s)
     
     column_Names = (df.keys())
     column_dTypes = []
@@ -30,14 +31,15 @@ def initialize_columns(df: pd.DataFrame,sql_type: str):
     
     return [column_Names,column_dTypes,column_constraints]
 
-def SQL_Builder(table_Name: str,column_Names: list,column_dTypes: list,column_constraints: list,df: pd.DataFrame,limit: int):
+def SQL_Builder(table_Name: str,column_Names: list,column_dTypes: list,column_constraints: list,df: pd.DataFrame,limit: int,pkindex: int):
     df.columns = column_Names
     SQL = []
     SQL.append("CREATE TABLE "+table_Name+" (\n")
     
-    SQL.append(column_Names[0]+" "+column_dTypes[0]+" PRIMARY KEY "+column_constraints[0]+",\n") #First Column is PRIMARY KEY
-    for i in range(1,len(column_Names)):
-        SQL.append(column_Names[i]+" "+column_dTypes[i]+" "+column_constraints[i]+",\n")
+    SQL.append(column_Names[pkindex]+" "+column_dTypes[pkindex]+" PRIMARY KEY,\n") #Selected Column is PRIMARY KEY
+    for i in range(len(column_Names)):
+        if i != pkindex:
+            SQL.append(column_Names[i]+" "+column_dTypes[i]+""+column_constraints[i]+",\n")
     
     last_line = SQL.pop()
     SQL.append(last_line.rstrip(',\n') + "\n")

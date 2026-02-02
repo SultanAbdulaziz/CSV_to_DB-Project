@@ -1,6 +1,6 @@
 # CSV to MySQL SQL Generator
 
-v1.1 - Working CSV to MySQL CREATE TABLE and INSERT statements
+v1.4 - Working CSV to MySQL CREATE TABLE and INSERT statements
 
 # How to use
 1. install pandas, streamlit
@@ -13,11 +13,14 @@ v1.1 - Working CSV to MySQL CREATE TABLE and INSERT statements
 - First column is PRIMARY KEY
 - INSERT statements for all records or limit
 - website with drag and drop to upload CSV files
+- ability to rename columns and table names
+- support for mySQL, PostgreSQL, SQLite
+- primary key selector
 
 # Future improvements
-error handling, MySQL executor, FORIEGN KEY detection,PRIMARY KEY selection and more
+MySQL executor, FORIEGN KEY detection and more
  
 
-Sultan Abdulaziz - Jan 23, 2026
+Sultan Abdulaziz - Feb 2, 2026
 
 
