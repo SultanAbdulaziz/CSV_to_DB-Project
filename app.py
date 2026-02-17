@@ -4,14 +4,15 @@ import src.pipeline as pipe
 
 
 st.set_page_config(
-    page_title = "CSV to mySQL parser",
+    page_title = "SQLify",
     page_icon = ":star:",
     layout = "wide",
     menu_items={
         'About': 'This is deveolped using pandas and streamlit by Sultan 2026'
     }
 )
-st.title("Streamlit CSV to mySQL generator.")
+st.title("SQLify")
+st.subheader("CSV to mySQL parser")
 st.divider()
 
 uploaded_files = st.sidebar.file_uploader("Upload CSV Files here.",accept_multiple_files=True,type="csv")
@@ -43,7 +44,8 @@ if uploaded_files and sql_type is not None:
                 column_Names[i] = st.sidebar.text_input(f"{i}. Column Name",value=column_Names[i],key=f"colname_{hash(uploaded_file.name)}_{i}")
             sql = pipe.SQL_Builder(table_Name,column_Names,column_dTypes,column_constraints,df,limit,pkindex)
             st.header(f"{str(uploaded_file.name).split(".")[0]} :blue[_SQL_] Code",divider = "red")
-            if "UNIQUE" not in str(column_constraints[pkindex]): st.header(":red[*Warning*] PK is not UNIQUE.")
+            if "NOT NULL" not in str(column_constraints[pkindex]): st.header(":red[*Warning*] PK could be NULL.")
+            elif "UNIQUE" not in str(column_constraints[pkindex]): st.header(":red[*Warning*] PK is not UNIQUE.")
             st.code(sql,language = "plsql")
         except Exception as e:
             st.write(f":red[_ERROR_] {e}")
