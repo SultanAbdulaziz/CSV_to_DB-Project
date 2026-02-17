@@ -73,7 +73,7 @@ def insert_statement_builder(table_Name: str,column_Names: list,column_dTypes: l
         file.write("".join(SQL))
         return Path(file.name)
 
-CLI args ->
+#CLI args ->
 parser = argparse.ArgumentParser(description="A script that parses CSV to and outputs mySQL query to create table and insert values.")
 parser.add_argument("CSVinputFile", type=str, help="CSV File to parse")
 parser.add_argument("--table_Name", type=str,default = "Null" ,help="Table name (default: filename)")
