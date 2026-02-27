@@ -6,12 +6,13 @@ import src.DB as DB
 
 st.set_page_config(
     page_title = "SQLify",
-    page_icon = ":star:",
+    page_icon = "SQLify_Logo.png",
     layout = "wide",
     menu_items={
         'About': 'This is deveolped using pandas, sqlalchemy and streamlit by Sultan 2026'
     }
 )
+st.logo("SQLify_Logo.png",size="large")
 st.title("SQLify")
 st.subheader("CSV to mySQL parser")
 st.divider()
