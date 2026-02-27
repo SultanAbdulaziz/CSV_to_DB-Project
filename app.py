@@ -51,6 +51,8 @@ def load_file(file):
 if "sql_statements" not in st.session_state:
     st.session_state["sql_statements"] = []
 
+if "disable_SQLquerypage" not in st.session_state:
+    st.session_state['disable_SQLquerypage'] = False
 if uploaded_files and sql_type is not None and page == "Generate SQL":
     sql_statements = []
     for uploaded_file in uploaded_files:
@@ -60,20 +62,35 @@ if uploaded_files and sql_type is not None and page == "Generate SQL":
             column_Names = list(result_set[0])
             column_dTypes = list(result_set[1])
             column_constraints = list(result_set[2])
-            st.sidebar.header(f":blue[_{uploaded_file.name}_]",divider = "red")
-            table_Name = st.sidebar.text_input("Table Name",str(uploaded_file.name).split(sep = '.')[0].split()[0])
-            pkColumn = st.sidebar.selectbox("Select pk Column",column_Names,index = 0)
+            expander = st.expander(f"{uploaded_file.name}", expanded=True)
+            expander.header(f":blue[_{uploaded_file.name}_]",divider = "red")
+
+            header_cols = expander.columns(2)
+            table_Name = header_cols[0].text_input("Table Name",str(uploaded_file.name).split(sep='.') [0].split()[0])
+            pkColumn = header_cols[1].selectbox("Select pk Column", column_Names, index=0)
             pkindex = column_Names.index(pkColumn)
+
+            expander.subheader("Column Names")
+            col_layout = expander.columns(3)
             for i in range(len(column_Names)):
-                column_Names[i] = st.sidebar.text_input(f"{i}. Column Name",value=column_Names[i],key=f"colname_{hash(uploaded_file.name)}_{i}")
+                target_col = col_layout[i % 3]
+                column_Names[i] = target_col.text_input(f"{i}. Column Name",value=column_Names[i],key=f"colname_{hash(uploaded_file.name)}_{i}")
+            
             sql = pipe.SQL_Builder(table_Name,column_Names,column_dTypes,column_constraints,df,limit,pkindex)
             sql_statements.append(sql)
-            st.header(f"{str(uploaded_file.name).split('.')[0]} :blue[_SQL_] Code",divider = "red")
-            if "NOT NULL" not in str(column_constraints[pkindex]): st.header(":red[*Warning*] PK could be NULL.")
-            elif "UNIQUE" not in str(column_constraints[pkindex]): st.header(":red[*Warning*] PK is not UNIQUE.")
-            st.code(sql,language = "plsql")
+            expander.header(f"{str(uploaded_file.name).split('.')[0]} :blue[_SQL_] Code",divider = "red")
+            if "NOT NULL" not in str(column_constraints[pkindex]):
+                expander.header(":red[*Warning*] PK could be NULL.")
+                st.session_state['disable_SQLquerypage'] = True
+            elif "UNIQUE" not in str(column_constraints[pkindex]):
+                expander.header(":red[*Warning*] PK is not UNIQUE.")
+                st.session_state['disable_SQLquerypage'] = True
+            else:
+                st.session_state['disable_SQLquerypage'] = False
+            expander.code(sql,language = "plsql")
         except Exception as e:
-            st.write(f":red[_ERROR_] {e}")
+            expander.write(f":red[_ERROR_] {e}")
+    
     # Store generated SQL in session state
     st.session_state["sql_statements"] = sql_statements
 
@@ -88,6 +105,9 @@ def startDB(sql_statements_tuple):
     return engine
 
 if page == "SQL Query":
+    if st.session_state.get('disable_SQLquerypage'):
+        st.warning("SQL Query page is disabled due to invalid primary key constraints.")
+        st.stop()
     st.title("SQL Query Console")
     st.divider()
     sql_statements = st.session_state.get("sql_statements", [])
@@ -119,4 +139,3 @@ if page == "SQL Query":
                                 st.code(query, language="sql")
                 else:
                     st.info("Enter a query to run.")
-
