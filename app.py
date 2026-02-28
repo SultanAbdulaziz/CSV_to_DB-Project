@@ -28,6 +28,7 @@ if "_last_uploaded_files" not in st.session_state:
 if uploaded_files != st.session_state["_last_uploaded_files"]:
     st.session_state["_last_uploaded_files"] = uploaded_files
     st.session_state.pop("sql_statements", None)
+    st.session_state['disable_SQLquerypage'] = False
     st.cache_data.clear()
     st.cache_resource.clear()
     if os.path.exists("in_memory.db"):
@@ -56,6 +57,7 @@ if "disable_SQLquerypage" not in st.session_state:
     st.session_state['disable_SQLquerypage'] = False
 if uploaded_files and sql_type is not None and page == "Generate SQL":
     sql_statements = []
+    has_violations = False
     for uploaded_file in uploaded_files:
         try:
             df = load_file(uploaded_file)   
@@ -82,15 +84,15 @@ if uploaded_files and sql_type is not None and page == "Generate SQL":
             expander.header(f"{str(uploaded_file.name).split('.')[0]} :blue[_SQL_] Code",divider = "red")
             if "NOT NULL" not in str(column_constraints[pkindex]):
                 expander.header(":red[*Warning*] PK could be NULL.")
-                st.session_state['disable_SQLquerypage'] = True
+                has_violations = True
             elif "UNIQUE" not in str(column_constraints[pkindex]):
                 expander.header(":red[*Warning*] PK is not UNIQUE.")
-                st.session_state['disable_SQLquerypage'] = True
-            else:
-                st.session_state['disable_SQLquerypage'] = False
+                has_violations = True
             expander.code(sql,language = "plsql")
         except Exception as e:
             expander.write(f":red[_ERROR_] {e}")
+    
+    st.session_state['disable_SQLquerypage'] = has_violations
     
     # Store generated SQL in session state
     st.session_state["sql_statements"] = sql_statements
@@ -99,10 +101,12 @@ elif uploaded_files and page == "Generate SQL": st.header("Select DBMS")
 elif sql_type is not None and page == "Generate SQL": st.header("Upload Files through the sidebar.")
 elif page == "Generate SQL": st.header("Upload Files through the sidebar and Select DBMS.")
 
-@st.cache_resource
-def startDB(sql_statements_tuple):
+def startDB(sql_statements):
+    # Delete existing database file to start fresh
+    if os.path.exists("in_memory.db"):
+        os.remove("in_memory.db")
     # Execute all SQL statements to create tables and insert data
-    engine = DB.initialize_db(list(sql_statements_tuple), filepath="in_memory.db")
+    engine = DB.initialize_db(sql_statements, filepath="in_memory.db")
     return engine
 
 if page == "SQL Query":
@@ -115,8 +119,8 @@ if page == "SQL Query":
     if not sql_statements:
         st.warning("No SQL generated. Go to 'Generate SQL' page and upload files first.")
     else:
-        # Convert list to tuple for cache_resource (lists are not hashable)
-        engine = startDB(tuple(sql_statements))
+        # Initialize database fresh on every page load
+        engine = startDB(sql_statements)
         if not engine:
             st.warning("No database initialized.")
         else:
