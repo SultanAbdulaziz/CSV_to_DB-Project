@@ -1,3 +1,0 @@
-orderId,customerId,productIds,totalPrice,orderDate,status
-301,201,"101;102",1529.98,2025-01-12,Pending
-302,202,"103;105",102.49,2025-01-14,Shipped
