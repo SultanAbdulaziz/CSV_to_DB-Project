@@ -1,2 +1,5 @@
 __pycache__/
 mySQL_output/
+*.db
+.DS_Store
+.venv/
